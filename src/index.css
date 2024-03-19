@@ -1,0 +1,26 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  left: 0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.label > div {
+  background: #00000088;
+  border-radius: 30px;
+  color: white;
+  font-family: Helvetica, Arial;
+  overflow: hidden;
+  padding: 15px;
+  position: absolute;
+  user-select: none;
+  white-space: nowrap;
+}
