@@ -13,7 +13,7 @@ const App = () => {
           makeDefault
           maxPolarAngle={0}
           enableRotate={false}
-          enablePan={false}
+        // enablePan={false}
         />
         <Center>
           <Experience />
