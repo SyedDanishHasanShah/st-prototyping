@@ -45,15 +45,18 @@ const Experience = () => {
     if (pathRef.current) {
       const path = new Path();
       // path.quadraticCurveTo(0, 40, 10, 0);
-      path.lineTo(0, -40);
-
+      path.lineTo(0, 40);
+      path.quadraticCurveTo(15, 50, 30, 40);
+      path.lineTo(30, 0);
+      path.lineTo(0, 0);
       const points = path.getPoints();
 
       console.log(points);
 
       pathRef.current.geometry.setFromPoints(points);
 
-
+      pathRef.current.geometry.computeBoundingBox();
+      console.log('boundingBox', pathRef.current.geometry.boundingBox);
       console.log('pathRef', pathRef);
     }
   }, []);
@@ -112,7 +115,7 @@ const Experience = () => {
         <planeGeometry />
         <meshBasicMaterial color="greenyellow" />
       </mesh> */}
-      <line ref={pathRef} position-y={-1.9999} rotation-x={-Math.PI * 0.5} scale-x={30}>
+      <line ref={pathRef} position-y={-1.9999} rotation-x={-Math.PI * 0.5} >
         <bufferGeometry />
         <lineBasicMaterial color="#ff0000" />
       </line>
@@ -129,6 +132,7 @@ const Experience = () => {
                   color="red"
                   position={[(line[0][0] + line[1][0]) / 2, 0, (line[0][2] + line[1][2]) / 2]}
                   characters="0123456789."
+
                 >
                   {'0'}
                 </Text>
