@@ -1,9 +1,9 @@
 import { Line, Text, Grid, Html } from "@react-three/drei";
 import { ThreeElements, ThreeEvent, useFrame, useThree } from "@react-three/fiber";
-import { RefObject, Suspense, createRef, useRef, useState } from "react";
+import { RefObject, Suspense, createRef, useLayoutEffect, useRef, useState } from "react";
 import { type Line2 } from "three/examples/jsm/Addons.js";
 import Floor from "./Floor";
-import { BufferGeometry, Material, Mesh, NormalBufferAttributes, Object3DEventMap } from "three";
+import { BufferGeometry, Material, Mesh, NormalBufferAttributes, Object3DEventMap, Path, LineBasicMaterial, Line as ThreeLine } from "three";
 
 type Point = [number, number, number];
 
@@ -20,6 +20,8 @@ function mapRange(value: number, inMin: number, inMax: number, outMin: number, o
   return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 }
 
+
+
 const Experience = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [isLineToolSelected, setIsLineToolSelected] = useState(true);
@@ -28,6 +30,7 @@ const Experience = () => {
   const linesRef = useRef<Array<RefObject<Line2>>>([]);
   const labelsRef = useRef<Array<RefObject<Text>>>([]);
   const floorRef = useRef<Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[], Object3DEventMap>>(null!);
+  const pathRef = useRef<ThreeLine>(null);
 
   const x = () => (pointer.width * viewport.getCurrentViewport().width * 0.5);
 
@@ -38,6 +41,23 @@ const Experience = () => {
     // console.log(camera);
   });
 
+  useLayoutEffect(() => {
+    if (pathRef.current) {
+      const path = new Path();
+      // path.quadraticCurveTo(0, 40, 10, 0);
+      path.lineTo(0, -40);
+
+      const points = path.getPoints();
+
+      console.log(points);
+
+      pathRef.current.geometry.setFromPoints(points);
+
+
+      console.log('pathRef', pathRef);
+    }
+  }, []);
+
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (!isLineToolSelected) return;
 
@@ -46,7 +66,6 @@ const Experience = () => {
     labelsRef.current.push(createRef<Text>());
     const point: [number, number, number] = [e.point.x, 0, e.point.z];
     const pointWithUv: [number, number, number] = [e.point.x - pointer.x, 0, e.point.z + (pointer.y + mapRange(pointer.y, -1, 1, 0, 0.5))];
-    console.log(point, pointWithUv);
     setLines(prevState => [...prevState, [pointWithUv, pointWithUv]]);
   };
 
@@ -55,16 +74,15 @@ const Experience = () => {
 
     const mostRecentLine = linesRef.current[linesRef.current.length - 1];
     const mostRecentLabel = labelsRef.current[labelsRef.current.length - 1];
-    if (!mostRecentLine.current) return;
+    if (!mostRecentLine.current || !mostRecentLabel.current) return;
     const starting = { x: mostRecentLine.current.geometry.attributes.instanceStart.getX(0), y: mostRecentLine.current.geometry.attributes.instanceStart.getZ(0) };
     const ending = { x: e.point.x, y: e.point.z, };
     const endingUv = { x: e.point.x - pointer.x, y: e.point.z + (pointer.y + mapRange(pointer.y, -1, 1, 0, 0.5)) };
-    console.log(pointer, endingUv);
     mostRecentLine.current.geometry.attributes.instanceEnd.setZ(0, endingUv.y);
     mostRecentLine.current.geometry.attributes.instanceEnd.setX(0, endingUv.x);
     mostRecentLine.current.geometry.attributes.instanceEnd.needsUpdate = true;
-    // mostRecentLabel.current.position.set((starting.x + ending.x) / 2, 0, (starting.y + ending.y) / 2);
-    // mostRecentLabel.current.text = length([starting.x, 0, starting.y], [ending.x, 0, ending.y]);
+    mostRecentLabel.current.position.set((starting.x + ending.x) / 2, 0, (starting.y + ending.y) / 2);
+    mostRecentLabel.current.text = length([starting.x, 0, starting.y], [ending.x, 0, ending.y]);
   }
 
   const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
@@ -81,25 +99,29 @@ const Experience = () => {
       {/* <Html>
         <button onClick={() => setIsLineToolSelected(!isLineToolSelected)}>{String(isLineToolSelected)}</button>
       </Html> */}
-      <Grid
+      {/* <Grid
         infiniteGrid
         cellColor="blue"
-        sectionColor="red"
+        sectionColor="green"
         cellSize={FT_TO_THREE / 12}
         sectionSize={FT_TO_THREE}
         cellThickness={1}
         sectionThickness={1}
-      />
-      <mesh ref={floorRef} position-y={-1.99999} rotation-x={-Math.PI * 0.5} scale={100} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
+      /> */}
+      {/* <mesh ref={floorRef} position-y={-1.99999} rotation-x={-Math.PI * 0.5} scale={100} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <planeGeometry />
         <meshBasicMaterial color="greenyellow" />
-      </mesh>
+      </mesh> */}
+      <line ref={pathRef} position-y={-1.9999} rotation-x={-Math.PI * 0.5} scale-x={30}>
+        <bufferGeometry />
+        <lineBasicMaterial color="#ff0000" />
+      </line>
       <group>
         {lines.map((line, index) => {
           return (
             <group key={index}>
               <Line points={line} ref={linesRef.current[index]} />
-              {/* <Suspense>
+              <Suspense>
                 <Text
                   ref={labelsRef.current[index]}
                   scale={5}
@@ -110,7 +132,7 @@ const Experience = () => {
                 >
                   {'0'}
                 </Text>
-              </Suspense> */}
+              </Suspense>
             </group>
           )
         })}
